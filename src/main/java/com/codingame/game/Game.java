@@ -46,7 +46,6 @@ public class Game {
         initGrid(random);
         initPlayers();
 
-        
     }
 
     private void initPlayers() {
@@ -75,8 +74,6 @@ public class Game {
                     }
                 }
             }
-            
-            
 
         }
     }
@@ -188,6 +185,20 @@ public class Game {
         grid.apples.removeAll(applesEatenThisTurn);
     }
 
+    private boolean hasTileOrAppleUnder(Coord c) {
+        Coord below = c.add(0, 1);
+        if (grid.get(below).getType() == Tile.TYPE_WALL) {
+            return true;
+        }
+
+        for (Coord a : grid.apples) {
+            if (a.equals(below)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean somethingSolidUnder(Coord c, List<Coord> ignoreBody) {
         Coord below = c.add(0, 1);
         if (ignoreBody.contains(below)) {
@@ -258,6 +269,11 @@ public class Game {
         List<List<Bird>> intercoiledGroups = new ArrayList<>();
         List<Bird> allBirds = getLiveBirds();
         Set<Bird> visited = new HashSet<>();
+
+        // Restrict to birds that are not on solid ground
+        allBirds = allBirds.stream()
+            .filter(b -> b.body.stream().noneMatch(c -> hasTileOrAppleUnder(c))).toList();
+
         for (Bird bird : allBirds) {
             if (visited.contains(bird)) {
                 continue;
@@ -330,7 +346,6 @@ public class Game {
     private boolean birdsAreTouchingVertically(Bird bird, Bird other) {
         for (Coord c1 : bird.body) {
             for (Coord c2 : other.body) {
-                
                 if (c1.manhattanTo(c2) == 1 && c1.getX() == c2.getX()) {
                     return true;
                 }
